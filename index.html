@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Socket.IO Test</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; margin: 2rem; }
+    .log { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; max-width: 600px; min-height: 200px; margin-top: 1rem; }
+    input, button { padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid #ccc; }
+    button { cursor: pointer; }
+    .row { display: flex; gap: 0.5rem; max-width: 600px; }
+  </style>
+</head>
+<body>
+  <h1>Socket.IO — Vercel ↔ Render</h1>
+  <p>
+    Update <code>BACKEND_URL</code> below to your Render URL (e.g. <code>https://sukhdev-editor-backend.onrender.com</code>),
+    then deploy this static page to Vercel to test.
+  </p>
+
+  <div class="row">
+    <input id="msg" placeholder="Type a message..." />
+    <button id="send">Send</button>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <!-- socket.io client from CDN -->
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-2T41QyIqTebH3rATHmW1UBf9yWIPcOjaEgU2Q0ctNGp0g7b7jBwtqv0uOG3Ew1sS" crossorigin="anonymous"></script>
+  <script>
+    const BACKEND_URL = "https://sukhdev-editor-backend.onrender.com"; // <-- change to your backend
+    const socket = io(BACKEND_URL, {
+      withCredentials: true,
+      transports: ["websocket"]
+    });
+
+    const log = (msg) => {
+      const el = document.getElementById("log");
+      const p = document.createElement("p");
+      p.textContent = msg;
+      el.appendChild(p);
+      el.scrollTop = el.scrollHeight;
+    };
+
+    socket.on("connect", () => log("Connected: " + socket.id));
+    socket.on("connect_error", (err) => log("Connect error: " + err.message));
+    socket.on("disconnect", (reason) => log("Disconnected: " + reason));
+
+    socket.on("message", (data) => {
+      log("Server broadcast: " + data);
+    });
+
+    document.getElementById("send").addEventListener("click", () => {
+      const val = document.getElementById("msg").value.trim();
+      if (!val) return;
+      socket.emit("message", val);
+      document.getElementById("msg").value = "";
+      log("You: " + val);
+    });
+  </script>
+</body>
+</html>
